@@ -5,22 +5,55 @@
 
 <PageTitle>Index</PageTitle>
 
-<Form Entity="Product" />
+<label>Message type</label>
+<select class="form-control selectpicker" @onchange="OnChange">
+    <option>--select--</option>
+    @foreach (var item in DropdownItems)
+    {
+        <option value="@item">@item</option>
+    }
+</select>
+
+
+@if (SelectedMessage != null)
+{
+    <div class="mt-4">
+        <Form Entity="SelectedMessage" />
+    </div>
+}
+
 
 @code {
-    private Product? Product { get; set; }
+    private List<string> DropdownItems = new();
+    private Dictionary<string, Type> MessageTypes = new();
+
+    private IMessage? SelectedMessage { get; set; }
+
+    private void OnChange(ChangeEventArgs args)
+    {
+        Console.WriteLine(args.Value);
+        SelectedMessage = null;
+
+        if (MessageTypes.TryGetValue((string)args.Value, out var type))
+        {
+            SelectedMessage = Activator.CreateInstance(type) as IMessage;
+        }
+
+    }
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
 
-        Product = new Product()
-            {
-                Name = "Apple",
-                Description = "Green or red",
-                Type = ProductType.Standard,
-                Price = 2.5m,
-                HasSubscription = false
-            };
+        
+        MessageTypes = typeof(Program).Assembly.DefinedTypes
+               .Where(x => typeof(IMessage).IsAssignableFrom(x)
+               && x is { IsAbstract: false, IsInterface: false })
+               .ToDictionary(type => type.Name, type => type.AsType());
+
+        DropdownItems = MessageTypes.Select(x => x.Key).ToList();
+
     }
 }
+
+            

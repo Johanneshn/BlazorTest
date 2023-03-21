@@ -2,30 +2,17 @@
 
 @using System.Reflection
 @using System.Linq.Expressions
-@using BlazorReflection.Attributes
 @using BlazorReflection.Data
 
 @if (Property != null)
 {
     if (PropertyType == typeof(string))
     {
-        var formType = Property.GetAttribute<FormControlAttribute>()?.Type;
-        if (formType == FormControlType.Textarea)
-        {
-            <InputTextArea class="form-control"
-                           rows="15"
-                           Value="@((string)PropertyValue!)"
-                           ValueExpression="ValueExpression<string>()"
-                           ValueChanged="(string val) => Property.SetValue(Entity, val)" />
-        }
-        else
-        {
-            <InputText class="form-control"
-                       value="@((string)PropertyValue!)"
-                       ValueExpression="ValueExpression<string>()"
-                       ValueChanged="(string val) => Property.SetValue(Entity, val)" />
-            <span class="text-danger"><ValidationMessage For="ValueExpression<string>()" /></span>
-        }
+        <InputText class="form-control"
+                   value="@((string)PropertyValue!)"
+           ValueExpression="ValueExpression<string>()"
+           ValueChanged="(string val) => Property.SetValue(Entity, val)" />
+        <span class="text-danger"><ValidationMessage For="ValueExpression<string>()" /></span>
     }
     else if (PropertyType == typeof(int))
     {

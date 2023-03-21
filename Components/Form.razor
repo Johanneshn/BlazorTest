@@ -2,25 +2,36 @@
 
 @using System.Reflection
 @using System.ComponentModel
+@using System.Text.Json;
 
 <EditForm Model="Entity" OnSubmit="OnSubmit">
     <DataAnnotationsValidator />
+    <h3>@Name</h3>
     @foreach (var property in Properties)
-    {
-        <FormField Property="property" Entity="Entity" />
+    {   <div class="mt-2">
+            <FormField Property="property" Entity="Entity" />
+        </div>
     }
     <div class="row">
         <div class="col-sm-12 d-flex justify-content-end">
             <button class="btn btn-lg btn-primary" type="submit">
-                <i class="fa fa-save" /> Save
+                <i class="fa fa-save" /> Send
             </button>
         </div>
     </div>
 </EditForm>
+@if (Json is not null)
+{
+    @Json
+}
 
 @code {
     [Parameter]
     public TEntity? Entity { get; set; }
+
+    private string? Json { get; set; }
+
+    public string Name { get; set; } = string.Empty;
 
     [Parameter]
     public EventCallback OnSaved { get; set; }
@@ -29,13 +40,22 @@
 
     protected override void OnInitialized()
     {
-        Properties = typeof(TEntity).GetProperties()
-            .Where(p => Attribute.IsDefined(p, typeof(DisplayNameAttribute)))
-            .ToList();
+        UpdateProperties();
     }
 
-    private async Task OnSubmit()
+
+    private void UpdateProperties()
     {
-        // notify parent component
+        Name = Entity?.GetType()?.Name ?? string.Empty;
+        Properties = Entity?.GetType().GetProperties()
+         .ToList() ?? new();
+    }
+    private void OnSubmit()
+    {
+        var options = new JsonSerializerOptions
+            {
+                IncludeFields = true,
+            };
+        Json = System.Text.Json.JsonSerializer.Serialize(Entity, Entity.GetType(), options);
     }
 }
